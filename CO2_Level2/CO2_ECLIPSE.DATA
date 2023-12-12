@@ -1,0 +1,290 @@
+-----------------------------------------------------------------------
+-->    CO2 storage example 
+-- Including: 1) real perm hysterisi 
+--            2) capillary pressure 
+-- 	      3) heterogeneous capillary pressure
+------------------------------------------------------------------------
+
+RUNSPEC
+
+
+-- for using JFUNC
+ENDSCALE
+/
+
+--Request the METRIC unit set
+
+METRIC
+
+-- Capillary pressure mode
+-- PW = P - PC
+-- PG = P
+OPTIONS3
+  7* 1 /
+-- adds wat-gas capillary pressure to water phase rather than gas phase
+-- reccommended for problems with high Pc
+
+-- Include diffusion
+--DIFFUSE
+
+-- Two components in study.
+COMPS
+ 3 /
+
+DIMENS
+ 72 72 22 /
+
+TABDIMS
+ 2 1 40 40 3/
+-- number of saturation tables, PVT tables and res. max. no. of entries (then FIP regions)
+
+WELLDIMS
+20 100/
+
+UDQDIMS
+3* 1 0 1 /
+
+SATOPTS
+ HYSTER /
+
+HWELLS
+--allows non-vertical wells
+
+CO2STORE
+
+FULLIMP
+
+SOLID
+
+START
+ 1 JAN 2022 /
+
+UNIFOUT
+-- unify output files
+--UNIFIN
+-- input files are unified (not in this case)
+
+--Grid section--------------------------------------------------------
+
+GRID
+--Basic grid block sizes
+
+JFUNC
+-- The value of 14.14, is sqrt(reference Perm / reference Poro) = sqrt(40/0.2) = 14.14 (different from the 50x50 case where value is 15)
+-- Decatur sqrt(40/0.185) = 
+-- Then, enter the reference Pc-curve using keyword: SGAS
+GAS 1* 28.226171847261188 /
+
+DXV
+320 70*160 320 /
+
+DYV
+320 70*160 320 /
+
+DZV
+22*11 /
+
+INCLUDE
+MULTPVEDGE.INC /
+
+--Cell top depths - only for first layer specified
+TOPS
+5184*1524
+5184*1535
+5184*1546
+5184*1557
+5184*1568
+5184*1579
+5184*1590
+5184*1601
+5184*1612
+5184*1623
+5184*1634
+5184*1645
+5184*1656
+5184*1667
+5184*1678
+5184*1689
+5184*1700
+5184*1711
+5184*1722
+5184*1733
+5184*1744
+5184*1755
+/                                                   
+
+MINPORV
+0.01 /
+
+
+INCLUDE
+PORO.INC /
+
+INCLUDE
+PERMX.INC /
+
+INCLUDE
+PERMY.INC /
+
+INCLUDE
+PERMZ.INC /
+
+RPTGRID
+ 'DEPTH' /
+-- request output of grid data to the PRT file
+
+INIT
+-- request init file (summary of data entered in GRID, PROPS & REGIONS)
+
+--Properties section-----------------------------------------------
+
+EDIT
+
+--INCLUDE
+--PORV.INC / -- same thing as MULTPV
+
+PROPS
+
+CNAMES
+  H2O CO2 NACL /
+
+ZMFVD
+-- depth  	h20  	co2 NaCl
+ 1524   	0.99 	0.0 0.01 / 
+
+STCOND
+15.56 1.01325 /
+ 
+-- Temp in C -- about 1F per 70 feet
+RTEMP
+ 55.222222 / 
+
+INCLUDE
+PVT.INC /
+
+--using brooks-corey with last value of 100 guessed because the curve trends to infinity there
+
+EHYSTR
+4* KR
+--4* KR NEW
+
+--Rock data
+ROCK
+1.0132	4.934E-5 /
+
+--Regions section------------------------------------------------------
+
+REGIONS
+
+SATNUM
+114048*1 /
+
+IMBNUM
+114048*2 /
+
+-- define FIP region to output CO2 gas average sat at top layer
+FIPNUM
+114048*1 /
+
+BOX
+2 71 2 71 1 1/
+
+FIPNUM
+4900*2 /
+
+ENDBOX
+
+BOX
+1 72 1 1 1 22/
+
+FIPNUM
+1584*3 /
+
+ENDBOX
+
+BOX
+1 72 72 72 1 22/
+
+FIPNUM
+1584*3 /
+
+ENDBOX
+
+BOX
+1 1 2 71 1 22/
+
+FIPNUM
+1540*3 /
+
+ENDBOX
+
+BOX
+72 72 2 71 1 22/
+
+FIPNUM
+1540*3 /
+
+ENDBOX
+
+--Solution section------------------------------------------------------
+
+SOLUTION
+
+--Equilibration data  -- about 0.45 psi/ft
+EQUIL
+ 1524	155.132 0.0 /
+
+ 
+RPTSOL
+PRESSURE SWAT SGAS /
+ 
+ 
+SUMMARY    =============================================================
+-- FIELD PROPERTIES
+FWCD
+FGCDI
+FGCDM
+FUDRMTOT 
+
+-- REGION PROPERTIES
+RWCD
+3/
+RGCDI
+3/
+RGCDM
+3/
+
+-- USER DEFINED FIELD PROPERTY
+RUDRM
+3/
+
+
+WBHP
+/
+-- INJ1 INJ2 INJ3 INJ4 /
+RGSAT
+2/
+RPR
+2/
+
+INCLUDE
+BGSAT.INC
+/
+
+RUNSUM
+EXCEL
+
+--Schedule section------------------------------------------------------
+
+SCHEDULE
+
+RPTRST    -- request restart file
+'BASIC=2' 'SGAS'
+/
+
+INCLUDE
+base.sched /
+--SCHEDULE.in /
+
+END
+
